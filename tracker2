@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Geo-Fenced Biometric Attendance System</title>
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f4f6f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .card {
+      background: #ffffff;
+      width: 360px;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    h2 { margin-bottom: 10px; color: #333; }
+    p { color: #555; font-size: 14px; }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 12px;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover { background: #4338ca; }
+    .status { margin-top: 15px; font-weight: bold; }
+    .footer { margin-top: 20px; font-size: 12px; color: #777; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div class="card" id="loginCard">
+  <h2>Student Login</h2>
+  <p>Geo-Fenced Biometric Attendance</p>
+
+  <input type="text" id="username" placeholder="Roll Number" />
+  <input type="password" id="password" placeholder="Password" />
+
+  <button onclick="login()">Login</button>
+
+  <div class="status" id="loginStatus"></div>
+  <div class="footer">
+    Demo Login → Roll: <b>student</b> | Password: <b>1234</b>
+  </div>
+</div>
+
+<!-- ATTENDANCE PAGE -->
+<div class="card hidden" id="attendanceCard">
+  <h2>Mark Attendance</h2>
+  <p>Welcome, <span id="studentName"></span></p>
+
+  <p><b>Step 1:</b> Biometric Verification</p>
+  <button onclick="scanBiometric()">Scan Fingerprint</button>
+  <div class="status" id="biometricStatus"></div>
+
+  <button onclick="markAttendance()">Mark Attendance</button>
+  <div class="status" id="attendanceStatus"></div>
+
+  <div class="footer">
+    Attendance uses Biometric + Location (DAVV F Block)
+  </div>
+</div>
+
+<script>
+  // ---------------- LOGIN ----------------
+  const DEMO_USER = "student";
+  const DEMO_PASS = "1234";
+
+  function login() {
+    const user = document.getElementById("username").value;
+    const pass = document.getElementById("password").value;
+    const status = document.getElementById("loginStatus");
+
+    if (user === DEMO_USER && pass === DEMO_PASS) {
+      document.getElementById("loginCard").classList.add("hidden");
+      document.getElementById("attendanceCard").classList.remove("hidden");
+      document.getElementById("studentName").innerText = user;
+    } else {
+      status.innerText = "❌ Invalid credentials";
+      status.style.color = "red";
+    }
+  }
+
+  // ---------------- BIOMETRIC (WebAuthn) ----------------
+  let biometricVerified = false;
+
+  async function scanBiometric() {
+    const bioStatus = document.getElementById("biometricStatus");
+
+    if (!window.PublicKeyCredential) {
+      bioStatus.innerText = "❌ Biometric not supported on this device";
+      bioStatus.style.color = "red";
+      return;
+    }
+
+    try {
+      const publicKey = {
+        challenge: new Uint8Array(32),
+        timeout: 60000,
+        userVerification: "required"
+      };
+
+      await navigator.credentials.get({ publicKey });
+
+      biometricVerified = true;
+      bioStatus.innerText = "🔐 Biometric verified successfully";
+      bioStatus.style.color = "green";
+    } catch (err) {
+      biometricVerified = false;
+      bioStatus.innerText = "❌ Biometric verification failed";
+      bioStatus.style.color = "red";
+    }
+  }
+
+  // ---------------- GEO-FENCING (DAVV F Block) ----------------
+  const COLLEGE_LAT = 22.689;
+  const COLLEGE_LON = 75.874;
+  const ALLOWED_RADIUS = 80; // meters
+
+  function markAttendance() {
+    const status = document.getElementById("attendanceStatus");
+
+    if (!biometricVerified) {
+      status.innerText = "❌ Please complete biometric verification first";
+      status.style.color = "red";
+      return;
+    }
+
+    if (!navigator.geolocation) {
+      status.innerText = "❌ Geolocation not supported";
+      status.style.color = "red";
+      return;
+    }
+
+    status.innerText = "Checking location...";
+    status.style.color = "black";
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+
+        const distance = getDistance(lat, lon, COLLEGE_LAT, COLLEGE_LON);
+
+        if (distance <= ALLOWED_RADIUS) {
+          status.innerText = "✅ Attendance Marked: PRESENT";
+          status.style.color = "green";
+        } else {
+          status.innerText = "❌ Outside F Block: Attendance Rejected";
+          status.style.color = "red";
+        }
+      },
+      () => {
+        status.innerText = "❌ Location permission denied";
+        status.style.color = "red";
+      }
+    );
+  }
+
+  // ---------------- DISTANCE CALCULATION ----------------
+  function getDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371000;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) *
+      Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+</script>
+
+</body>
+</html>
