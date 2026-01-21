@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Geo‑Fenced Biometric Attendance System</title>
+  <title>Geo-Fenced Biometric Attendance System</title>
   <style>
     body {
       font-family: Arial, Helvetica, sans-serif;
@@ -21,14 +21,8 @@
       box-shadow: 0 8px 20px rgba(0,0,0,0.1);
       text-align: center;
     }
-    h2 {
-      margin-bottom: 10px;
-      color: #333;
-    }
-    p {
-      color: #555;
-      font-size: 14px;
-    }
+    h2 { margin-bottom: 10px; color: #333; }
+    p { color: #555; font-size: 14px; }
     input {
       width: 100%;
       padding: 10px;
@@ -47,21 +41,10 @@
       font-size: 16px;
       cursor: pointer;
     }
-    button:hover {
-      background: #4338ca;
-    }
-    .status {
-      margin-top: 15px;
-      font-weight: bold;
-    }
-    .footer {
-      margin-top: 20px;
-      font-size: 12px;
-      color: #777;
-    }
-    .hidden {
-      display: none;
-    }
+    button:hover { background: #4338ca; }
+    .status { margin-top: 15px; font-weight: bold; }
+    .footer { margin-top: 20px; font-size: 12px; color: #777; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
@@ -69,7 +52,7 @@
 <!-- LOGIN PAGE -->
 <div class="card" id="loginCard">
   <h2>Student Login</h2>
-  <p>Geo‑Fenced Biometric Attendance</p>
+  <p>Geo-Fenced Biometric Attendance</p>
 
   <input type="text" id="username" placeholder="Roll Number" />
   <input type="password" id="password" placeholder="Password" />
@@ -77,7 +60,6 @@
   <button onclick="login()">Login</button>
 
   <div class="status" id="loginStatus"></div>
-
   <div class="footer">
     Demo Login → Roll: <b>student</b> | Password: <b>1234</b>
   </div>
@@ -93,7 +75,6 @@
   <div class="status" id="biometricStatus"></div>
 
   <button onclick="markAttendance()">Mark Attendance</button>
-
   <div class="status" id="attendanceStatus"></div>
 
   <div class="footer">
@@ -102,7 +83,7 @@
 </div>
 
 <script>
-  // ---------------- LOGIN (Prototype) ----------------
+  // ---------------- LOGIN ----------------
   const DEMO_USER = "student";
   const DEMO_PASS = "1234";
 
@@ -135,7 +116,7 @@
 
     try {
       const publicKey = {
-        challenge: new Uint8Array(32), // prototype challenge
+        challenge: new Uint8Array(32),
         timeout: 60000,
         userVerification: "required"
       };
@@ -152,7 +133,7 @@
     }
   }
 
-  // ---------------- GEO‑FENCING (DAVV F Block) ----------------
+  // ---------------- GEO-FENCING (DAVV F Block) ----------------
   const COLLEGE_LAT = 22.689;
   const COLLEGE_LON = 75.874;
   const ALLOWED_RADIUS = 80; // meters
@@ -216,3 +197,4 @@
 
 </body>
 </html>
+
